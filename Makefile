@@ -9,9 +9,13 @@ help:
 	@echo "  make doctor     - check local prerequisites and current .env choices"
 	@echo "  make validate   - run compose validation for all compose files"
 	@echo "  make up         - docker compose up -d for the beginner-safe starter stack"
-	@echo "  make force-up   - docker compose up -d (root compose) ---force-recreate"
+	@echo "  make force-up   - docker compose up -d --force-recreate"
 	@echo "  make down       - docker compose down"
 	@echo "  make backup     - run backup script for named volumes (see scripts/backup-volumes.sh)"
+	@echo ""
+	@echo "Note:"
+	@echo "  The two `up` and the one `down` targets allow arguments, so you can"
+	@echo "  give service names if needed: e.g. `make up jellyfin`"
 
 bootstrap:
 	@$(SCRIPTS_DIR)/bootstrap.sh
