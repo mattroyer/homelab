@@ -1,0 +1,24 @@
+services:
+  streamlit-hello:
+    image: python:3.11-slim
+    container_name: streamlit-hello
+    working_dir: /app
+    command: /bin/sh -c "pip install --no-cache-dir streamlit && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+    volumes:
+      - ./apps/streamlit/hello:/app
+      - ./apps/streamlit/hello/.streamlit:/root/.streamlit:ro
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.streamlit-hello.rule=Host(`hello.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.streamlit-hello.entrypoints=https"
+      - "traefik.http.routers.streamlit-hello.tls=true"
+      - "traefik.http.services.streamlit-hello.loadbalancer.server.port=8501"
+      # Optional Glance tile on your dashboard
+      - "glance.name=Hello"
+      - "glance.icon=fa:hand-peace"
+      - "glance.url=https://hello.${DOMAIN_NAME}"
+      - "glance.description=Quick Streamlit demo"
+

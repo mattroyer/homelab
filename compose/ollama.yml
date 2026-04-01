@@ -1,0 +1,18 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - homelab
+    volumes:
+      - ollama-local:/root/.ollama
+    labels:
+      - "glance.name=Ollama"
+      - "glance.icon=si:ghost"
+      - "glance.url=https://aichat.${DOMAIN_NAME}"  # optional, since Ollama is typically headless
+      - "glance.description=Local model server for OpenWebUI"
+
+volumes:
+  ollama-local:
+

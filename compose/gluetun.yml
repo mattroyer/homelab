@@ -1,0 +1,52 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESS}
+      - TZ=${TZ}
+      - SERVER_CITIES=Denver CO
+      - HEALTH_TARGET_ADDRESS=1.1.1.1
+    ports:
+      - 8080:8080  # WebUI for qBittorrent
+      - 8112:8112     # Deluge WebUI
+    volumes:
+      - gluetun_data:/gluetun
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=https"
+      - "traefik.http.routers.qbittorrent.tls=true"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+      - "glance.name=qBittorrent"
+      - "glance.icon=si:qbittorrent"
+      - "glance.url=https://qbittorrent.${DOMAIN_NAME}"
+      - "glance.description=Torrent client via Mullvad VPN"
+
+      - "traefik.http.routers.deluge.rule=Host(`deluge.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.deluge.entrypoints=https"
+      - "traefik.http.routers.deluge.tls=true"
+      - "traefik.http.services.deluge.loadbalancer.server.port=8112"
+      - "glance.name=Deluge"
+      - "glance.icon=si:deluge"
+      - "glance.url=https://deluge.${DOMAIN_NAME}"
+      - "glance.description=Another torrent client through VPN"
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8080/ || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  gluetun_data:
+

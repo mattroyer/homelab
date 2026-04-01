@@ -1,0 +1,74 @@
+services:
+  tubearchivist:
+    image: bbilly1/tubearchivist:latest     # upstream image name
+    container_name: tubearchivist
+    restart: unless-stopped
+    volumes:
+      - /mnt/storage/media/youtube:/youtube   # video files
+      - tube_cache:/cache                     # artwork / thumbs
+    environment:
+      - ES_URL=http://archivist-es:9200       # must include protocol + port
+      - REDIS_CON=redis://archivist-redis:6379
+      - HOST_UID=1000
+      - HOST_GID=1000
+      - TA_HOST=https://tube.${PROD_DOMAIN_NAME}   # URL shown inside the UI
+      - TA_USERNAME=${TUBE_USER}
+      - TA_PASSWORD=${TUBE_PASSWORD}
+      - ELASTIC_PASSWORD=${TA_ELASTIC_PWD}
+      - TZ=${TZ}
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tube.rule=Host(`tube.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.tube.entrypoints=https"
+      - "traefik.http.routers.tube.tls=true"
+      - "traefik.http.services.tube.loadbalancer.server.port=8000"
+      - "glance.name=Tube Archivist"
+      - "glance.icon=si:youtube"
+      - "glance.url=https://tube.${DOMAIN_NAME}"
+      - "glance.description=YouTube archive & player"
+
+  archivist-redis:
+    image: redis:alpine
+    container_name: archivist-redis
+    restart: unless-stopped
+    volumes:
+      - tube_redis:/data
+    expose:
+      - "6379"
+    networks:
+      - homelab
+
+  archivist-es:
+    image: bbilly1/tubearchivist-es:latest   # pre-tuned ES 8 build for x86_64
+    container_name: archivist-es
+    restart: unless-stopped
+    environment:
+      - xpack.security.enabled=true
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${TA_ELASTIC_PWD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - path.repo=/usr/share/elasticsearch/data/snapshot
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - tube_es:/usr/share/elasticsearch/data   # metadata index
+    expose:
+      - "9200"
+    networks:
+      - homelab
+
+volumes:
+  tube_cache:
+  tube_redis:
+  tube_es:
+

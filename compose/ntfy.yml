@@ -1,0 +1,25 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    environment:
+      - TZ=${TZ}
+      - NTFY_BASE_URL=https://notify.${DOMAIN_NAME}
+      - NTFY_BEHIND_PROXY=true
+      - NTFY_UPSTREAM_BASE_URL=https://ntfy.sh
+    volumes:
+      - ntfy_data:/var/lib/ntfy
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ntfy.rule=Host(`notify.${DOMAIN_NAME}`)
+      - traefik.http.routers.ntfy.entrypoints=https
+      - traefik.http.routers.ntfy.tls=true
+      - traefik.http.services.ntfy.loadbalancer.server.port=80
+
+volumes:
+  ntfy_data:
+

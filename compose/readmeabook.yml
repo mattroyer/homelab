@@ -1,0 +1,36 @@
+services:
+  readmeabook:
+    image: ghcr.io/kikootwo/readmeabook:latest
+    container_name: readmeabook
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      # Uncomment if you need correct external URL behavior or OAuth later
+      # - PUBLIC_URL=https://readmeabook.${DOMAIN_NAME}
+    volumes:
+      - readmeabook_config:/app/config
+      - readmeabook_cache:/app/cache
+      - ${MEDIA_ROOT:-./data/media}/downloads/complete:/config/downloads/complete
+      - ${MEDIA_ROOT:-./data/media}/audiobooks:/media
+      - readmeabook_pgdata:/var/lib/postgresql/data
+      - readmeabook_redis:/var/lib/redis
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.readmeabook.rule=Host(`readmeabook.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.readmeabook.entrypoints=https"
+      - "traefik.http.routers.readmeabook.tls=true"
+      - "traefik.http.services.readmeabook.loadbalancer.server.port=3030"
+      - "glance.name=ReadMeABook"
+      - "glance.icon=si:bookstack"
+      - "glance.url=https://readmeabook.${DOMAIN_NAME}"
+      - "glance.description=Audiobook requests and downloads"
+
+volumes:
+  readmeabook_config:
+  readmeabook_cache:
+  readmeabook_pgdata:
+  readmeabook_redis:

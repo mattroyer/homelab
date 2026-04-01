@@ -1,0 +1,29 @@
+services:
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    container_name: deluge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - DELUGE_LOGLEVEL=info
+    volumes:
+      - deluge_config:/config
+      - /mnt/storage/media/downloads:/downloads # Matches your SABnzbd path
+      - /mnt/storage/media/downloads:/downloads # For incomplete torrents
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.http.routers.deluge.rule=Host(`deluge.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.deluge.entrypoints=https"
+      - "traefik.http.routers.deluge.tls=true"
+      - "traefik.http.services.deluge.loadbalancer.server.port=8112"
+      - "glance.name=Deluge"
+      - "glance.icon=si:deluge"
+      - "glance.url=https://deluge.${DOMAIN_NAME}"
+      - "glance.description=Another torrent client through VPN"
+
+volumes:
+  deluge_config:
+

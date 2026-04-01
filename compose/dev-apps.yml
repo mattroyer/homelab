@@ -1,0 +1,15 @@
+services:
+  # Managed by scripts/new-dev-app.sh
+
+  bright-whale:
+    build: ../apps/dev/bright-whale
+    container_name: dev-bright-whale
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bright-whale.rule=Host(`bright-whale.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.bright-whale.entrypoints=https"
+      - "traefik.http.routers.bright-whale.tls=true"
+      - "traefik.http.services.bright-whale.loadbalancer.server.port=8000"

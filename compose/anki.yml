@@ -1,0 +1,31 @@
+# compose/anki.yml
+services:
+  anki-desktop:
+    image: pnorcross/anki-desktop:latest
+    container_name: anki-desktop
+    restart: unless-stopped
+    volumes:
+      - anki_data:/config/app
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - AUTOSTART="/usr/local/bin/anki --disable-gpu --no-sandbox"
+    ports:
+      - "8765:8765"
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.anki.rule=Host(`anki.${DOMAIN_NAME}`)
+      - traefik.http.routers.anki.entrypoints=https
+      - traefik.http.routers.anki.tls=true
+      - traefik.http.services.anki.loadbalancer.server.port=3000
+      - glance.name=Anki
+      - glance.icon=si:anki
+      - glance.url=https://anki.${DOMAIN_NAME}
+      - glance.description=Browser-based Anki Desktop
+
+volumes:
+  anki_data:
+

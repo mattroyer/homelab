@@ -1,0 +1,52 @@
+services:
+  linkwarden-db:
+    image: postgres:16-alpine
+    container_name: linkwarden-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${LINKWARDEN_PG_PASSWORD}
+    volumes:
+      - linkwarden_pgdata:/var/lib/postgresql/data
+    networks:
+      - homelab
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12.8
+    container_name: linkwarden-meilisearch
+    restart: unless-stopped
+    volumes:
+      - linkwarden_meili_data:/meili_data
+    networks:
+      - homelab
+
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden:latest
+    container_name: linkwarden
+    environment:
+      - DATABASE_URL=postgresql://postgres:${LINKWARDEN_PG_PASSWORD}@linkwarden-db:5432/postgres
+      - NEXTAUTH_SECRET=VERY_SENSITIVE_SECRET
+    depends_on:
+      - linkwarden-db
+      - meilisearch
+    volumes:
+      - linkwarden_data:/data/data
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.linkwarden.rule=Host(`links.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.linkwarden.entrypoints=https"
+      - "traefik.http.routers.linkwarden.tls=true"
+      - "traefik.http.services.linkwarden.loadbalancer.server.port=3000"
+      - "glance.name=Linkwarden"
+      - "glance.icon=si:bookstack"
+      - "glance.url=https://links.${DOMAIN_NAME}"
+      - "glance.description=Bookmark and archiving tool"
+
+volumes:
+  linkwarden_pgdata:
+  linkwarden_meili_data:
+  linkwarden_data:
+

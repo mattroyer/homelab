@@ -1,0 +1,30 @@
+services:
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - calibre_web_config:/config
+      - /mnt/storage/media/downloads/complete/cwa:/cwa-book-ingest
+      - /mnt/storage/media/books:/calibre-library
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.books.rule=Host(`books.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.books.entrypoints=https"
+      - "traefik.http.routers.books.tls=true"
+      - "traefik.http.services.books.loadbalancer.server.port=8083"
+      - "glance.name=Calibre-Web"
+      - "glance.icon=si:calibre"
+      - "glance.url=https://books.${DOMAIN_NAME}"
+      - "glance.description=Audiobook and eBook library"
+
+volumes:
+  calibre_web_config:
+

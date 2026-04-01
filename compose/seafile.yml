@@ -1,0 +1,63 @@
+services:
+  seafile-db:
+    image: mariadb:10.11
+    container_name: seafile-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SEAFILE_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=seafile
+      - MYSQL_USER=seafile
+      - MYSQL_PASSWORD=${SEAFILE_DB_ROOT_PASSWORD}
+      - MYSQL_LOG_CONSOLE=true
+    volumes:
+      - /mnt/storage/seafile-mysql:/var/lib/mysql
+    networks:
+      - homelab
+    labels:
+      - "glance.hide=true"
+
+  seafile-memcached:
+    image: memcached:1.6-alpine
+    container_name: seafile-memcached
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "glance.hide=true"
+
+  seafile:
+    image: seafileltd/seafile-mc:latest
+    container_name: seafile
+    restart: unless-stopped
+    depends_on:
+      - seafile-db
+      - seafile-memcached
+    environment:
+      - DB_HOST=seafile-db
+      - DB_ROOT_PASSWD=${SEAFILE_DB_ROOT_PASSWORD}
+      - SEAFILE_ADMIN_EMAIL=${SEAFILE_ADMIN_EMAIL}
+      - SEAFILE_ADMIN_PASSWORD=${SEAFILE_ADMIN_PASSWORD}
+      - SEAFILE_SERVER_HOSTNAME=seafile.${DOMAIN_NAME}
+      - SEAFILE_SERVER_PROTOCOL=https
+      - SEAFILE_SERVER_LETSENCRYPT=false
+      - FORCE_HTTPS_IN_CONF=true
+      - TIME_ZONE=${TZ}
+      - MEMCACHED_HOST=seafile-memcached
+      - MEMCACHED_PORT=11211
+    volumes:
+      - /mnt/storage/seafile-data:/shared
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seafile.rule=Host(`seafile.${PROD_DOMAIN_NAME}`)"
+      - "traefik.http.routers.seafile.entrypoints=https"
+      - "traefik.http.routers.seafile.tls=true"
+      - "traefik.http.services.seafile.loadbalancer.server.port=80"
+      - "glance.name=Seafile"
+      - "glance.icon=si:seafile"
+      - "glance.url=https://seafile.${DOMAIN_NAME}"
+      - "glance.description=Private Dropbox-like sync"
+      # Optional: disable watchtower auto-upgrades for this container (recommended)
+      - "com.centurylinklabs.watchtower.enable=false"

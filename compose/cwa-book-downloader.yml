@@ -1,0 +1,43 @@
+services:
+  cwa-book-downloader:
+    image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
+    container_name: cwa-book-downloader
+    restart: unless-stopped
+    environment:
+      # - FLASK_PORT=8084
+      # - LOG_LEVEL=info
+      - BOOK_LANGUAGE=en
+      - USE_BOOK_TITLE=true
+      - TZ=${TZ}
+      - APP_ENV=prod
+      - UID=${PUID:-1000}
+      - GID=${PGID:-1000}
+      # - CWA_DB_PATH=/auth/app.db  # Comment out to disable authentication
+      # Queue management settings
+      - MAX_CONCURRENT_DOWNLOADS=3
+      - DOWNLOAD_PROGRESS_UPDATE_INTERVAL=5
+      - CWA_DB_PATH=/auth/app.db
+    volumes:
+      # This is where the books will be downloaded to, usually it would be
+      # the same as whatever you gave in "calibre-web-automated"
+      - /mnt/storage/media/downloads/complete/cwa:/cwa-book-ingest:rw
+      # This is the location of CWA's app.db, which contains authentication
+      # details. Comment out to disable authentication
+      - calibre_web_config:/auth:ro
+      #- /cwa/config/path/app.db:/auth/app.db:ro
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.books.rule=Host(`getbooks.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.books.entrypoints=https"
+      - "traefik.http.routers.books.tls=true"
+      - "traefik.http.services.books.loadbalancer.server.port=8084"
+      - "glance.name=Calibre-Web"
+      - "glance.icon=si:calibre"
+      - "glance.url=https://getbooks.${DOMAIN_NAME}"
+      - "glance.description=Download eBooks"
+
+volumes:
+  calibre_web_config:
+

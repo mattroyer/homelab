@@ -1,0 +1,22 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    volumes:
+      - vaultwarden_data:/data
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bitwarden.rule=Host(`bitwarden.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.bitwarden.entrypoints=https"
+      - "traefik.http.routers.bitwarden.tls=true"
+      - "traefik.http.services.bitwarden.loadbalancer.server.port=80"
+      - "glance.name=Bitwarden"
+      - "glance.icon=si:bitwarden"
+      - "glance.url=https://bitwarden.${DOMAIN_NAME}"
+      - "glance.description=Password manager"
+
+volumes:
+  vaultwarden_data:
+

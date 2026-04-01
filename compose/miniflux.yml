@@ -1,0 +1,48 @@
+services:
+  miniflux:
+    image: docker.io/miniflux/miniflux:latest
+    container_name: miniflux
+    depends_on:
+      - miniflux-db
+    environment:
+      - DATABASE_URL=postgres://${MINIFLUX_DB_USER}:${MINIFLUX_DB_PASSWORD}@miniflux-db/${MINIFLUX_DB_NAME}?sslmode=disable
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=${MINIFLUX_ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${MINIFLUX_ADMIN_PASSWORD}
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.miniflux.rule=Host(`miniflux.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.miniflux.entrypoints=https"
+      - "traefik.http.routers.miniflux.tls=true"
+      - "traefik.http.services.miniflux.loadbalancer.server.port=8080"
+      - "glance.name=Miniflux"
+      - "glance.icon=si:rss"
+      - "glance.url=https://miniflux.${DOMAIN_NAME}"
+      - "glance.description=Minimalist RSS reader"
+
+  miniflux-db:
+    image: postgres:17-alpine
+    container_name: miniflux-db
+    environment:
+      - POSTGRES_USER=${MINIFLUX_DB_USER}
+      - POSTGRES_PASSWORD=${MINIFLUX_DB_PASSWORD}
+      - POSTGRES_DB=${MINIFLUX_DB_NAME}
+    volumes:
+      - miniflux_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${MINIFLUX_DB_USER}"]
+      interval: 10s
+      start_period: 30s
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - glance.hide=true        # keep it off the Glance dashboard
+
+volumes:
+  miniflux_db_data:
+

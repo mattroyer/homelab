@@ -1,0 +1,27 @@
+services:
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - bazarr_config:/config
+      - ${MEDIA_ROOT:-./data/media}/movies:/movies
+      - ${MEDIA_ROOT:-./data/media}/tvseries:/tv
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.bazarr.entrypoints=https"
+      - "traefik.http.routers.bazarr.tls=true"
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "glance.name=Bazarr"
+      - "glance.icon=di:bazarr"
+      - "glance.url=https://bazarr.${DOMAIN_NAME}"
+      - "glance.description=Subtitle management for movies and TV"
+
+volumes:
+  bazarr_config:

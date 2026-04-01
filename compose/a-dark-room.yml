@@ -1,0 +1,19 @@
+services:
+  adarkroom:
+    image: dahuss/a-dark-room
+    container_name: adarkroom
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adarkroom.rule=Host(`adarkroom.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.adarkroom.entrypoints=https"
+      - "traefik.http.routers.adarkroom.tls=true"
+      - "traefik.http.services.adarkroom.loadbalancer.server.port=80"
+      - "glance.name=A Dark Room"
+      - "glance.icon=si:riotgames"
+      - "glance.url=https://adarkroom.${DOMAIN_NAME}"
+      - "glance.description=A Dark Room (text adventure)"
+
+

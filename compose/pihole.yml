@@ -1,0 +1,43 @@
+services:
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    ports:
+      - "53:53/tcp"    # DNS
+      - "53:53/udp"    # DNS
+      - "8081:80/tcp"  # Web interface
+      - "9443:443/tcp" # HTTPS
+    extra_hosts:
+      - "pihole.${DOMAIN_NAME}:${HOMELAB_HOST_IP}"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - WEBPASSWORD=${PIHOLE_WEB_PASSWORD}
+      - FTLCONF_webserver_domain=pihole.${DOMAIN_NAME}
+      - PIHOLE_DNS_=1.1.1.1;1.0.0.1;8.8.8.8;8.8.4.4
+      - DNSMASQ_LISTENING=all
+      - FTLCONF_misc_etc_dnsmasq_d=true
+    volumes:
+      - pihole_data:/etc/pihole
+      - ./apps/pihole/dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+      - CAP_SYS_TIME
+      - CAP_SYS_NICE
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.pihole.entrypoints=https"
+      - "traefik.http.routers.pihole.tls=true"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+      - "glance.name=Pi-Hole"
+      - "glance.icon=si:pihole"
+      - "glance.url=https://pihole.${DOMAIN_NAME}"
+      - "glance.description=Network-wide ad blocker and local DNS"
+
+volumes:
+  pihole_data:

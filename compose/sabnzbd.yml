@@ -1,0 +1,33 @@
+services:
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    container_name: sabnzbd
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - HOST_WHITELIST_ENTRIES=sabnzbd.${DOMAIN_NAME},localhost,127.0.0.1
+      - HOST_WHITELIST_DISABLE=true
+    volumes:
+      - sabnzbd_config:/config
+      - ${MEDIA_ROOT:-./data/media}/downloads/complete:/config/downloads/complete
+      - ${MEDIA_ROOT:-./data/media}/downloads/incomplete:/config/downloads/incomplete
+#      - ${MEDIA_ROOT:-./data/media}/downloads/ebooks:/ebooks
+#      - ${MEDIA_ROOT:-./data/media}/downloads/audiobooks:/audiobooks
+#      - ${MEDIA_ROOT:-./data/media}/downloads/magazines:/magazines
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.sabnzbd.entrypoints=https"
+      - "traefik.http.routers.sabnzbd.tls=true"
+      - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
+      - "glance.name=SABnzbd"
+      - "glance.icon=si:sabnzbd"
+      - "glance.url=https://sabnzbd.${DOMAIN_NAME}"
+      - "glance.description=Usenet downloader"
+    restart: unless-stopped
+    networks:
+      - homelab
+
+volumes:
+  sabnzbd_config:

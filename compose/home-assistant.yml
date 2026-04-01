@@ -1,0 +1,33 @@
+services:
+  ha:
+    container_name: ha
+    image: ghcr.io/home-assistant/home-assistant:stable
+    volumes:
+      - ./apps/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.home-assistant.rule=Host(`ha.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.home-assistant.entrypoints=https"
+      - "traefik.http.routers.home-assistant.tls=true"
+      - "traefik.http.services.home-assistant.loadbalancer.server.port=8123"
+      - "glance.name=Home Assistant"
+      - "glance.icon=si:homeassistant"
+      - "glance.url=https://ha.${DOMAIN_NAME}"
+      - "glance.description=Control your crib"
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8123/ || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # NOTE: Home Assistant previously used host networking. Some integrations (Zigbee USB, mDNS,
+    # hardware access) may require host networking. If you depend on host-level devices, either
+    # re-enable `network_mode: host` or expose the relevant devices/ports to the container.
+

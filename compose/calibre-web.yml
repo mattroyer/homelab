@@ -1,0 +1,29 @@
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - calibre_web_config:/config
+      - /mnt/storage/media/books:/books
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.books.rule=Host(`books.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.books.entrypoints=https"
+      - "traefik.http.routers.books.tls=true"
+      - "traefik.http.services.books.loadbalancer.server.port=8083"
+      - "glance.name=Calibre-Web"
+      - "glance.icon=si:calibre"
+      - "glance.url=https://books.${DOMAIN_NAME}"
+      - "glance.description=Browse and manage eBook library"
+
+volumes:
+  calibre_web_config:
+

@@ -1,0 +1,15 @@
+services:
+  cloudflare-ddns:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    environment:
+      - API_KEY=${CF_DNS_API_TOKEN}
+      - ZONE=${DOMAIN_NAME}
+      - SUBDOMAIN=${LOCAL_SUBDOMAIN}
+      - PROXIED=false
+      - RRTYPE=A
+      - CRON=*/30 * * * *
+    restart: unless-stopped
+    networks:
+      - homelab
+

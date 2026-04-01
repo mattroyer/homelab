@@ -1,0 +1,23 @@
+services:
+  glance:
+    container_name: glance
+    image: glanceapp/glance
+    volumes:
+      - ./apps/glance/config:/app/config
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.glance.rule=Host(`glance.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.glance.entrypoints=https"
+      - "traefik.http.routers.glance.tls=true"
+      - "traefik.http.services.glance.loadbalancer.server.port=8080"
+      - "glance.name=Glance"
+      - "glance.icon=si:groupon"
+      - "glance.url=https://glance.${DOMAIN_NAME}"
+      - "glance.description=Best dashboard ever!"
+

@@ -1,0 +1,22 @@
+services:
+  rsshub:
+    image: diygod/rsshub:latest
+    container_name: rsshub
+    environment:
+      - CACHE_EXPIRE=3600      # 1-hour cache, adjust as you like
+      - PUID=1000              # keeps perms consistent with other services
+      - PGID=1000
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rsshub.rule=Host(`rss.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.rsshub.entrypoints=https"
+      - "traefik.http.routers.rsshub.tls=true"
+      - "traefik.http.services.rsshub.loadbalancer.server.port=1200"
+      - "glance.name=RSSHub"
+      - "glance.icon=si:rss"
+      - "glance.url=https://rss.${DOMAIN_NAME}"
+      - "glance.description=Universal RSS generator"
+

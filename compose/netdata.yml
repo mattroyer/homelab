@@ -1,0 +1,35 @@
+services:
+  netdata:
+    image: netdata/netdata:stable
+    container_name: netdata
+    pid: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - netdata-lib:/var/lib/netdata
+      - netdata-cache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.netdata.rule=Host(`netdata.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.netdata.entrypoints=https"
+      - "traefik.http.routers.netdata.tls=true"
+      - "traefik.http.services.netdata.loadbalancer.server.port=19999"
+      - "glance.name=netdata"
+      - "glance.icon=si:netdata"
+      - "glance.url=https://netdata.${DOMAIN_NAME}"
+      - "glance.description=WTF is going on?"
+
+volumes:
+  netdata-lib:
+  netdata-cache:
+

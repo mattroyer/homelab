@@ -1,0 +1,29 @@
+services:
+  homebox:
+    image: ghcr.io/hay-kot/homebox:latest
+    container_name: homebox
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      # Adjust if you want more or less verbosity
+      - HBOX_LOG_LEVEL=info
+    volumes:
+      - homebox_data:/data          # persistent config & uploads
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homebox.rule=Host(`homebox.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.homebox.entrypoints=https"
+      - "traefik.http.routers.homebox.tls=true"
+      - "traefik.http.services.homebox.loadbalancer.server.port=7745"
+      - "glance.name=Homebox"
+      - "glance.icon=fa:box-archive"
+      - "glance.url=https://homebox.${DOMAIN_NAME}"
+      - "glance.description=Household asset tracker"
+
+volumes:
+  homebox_data:
+

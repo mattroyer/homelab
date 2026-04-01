@@ -1,0 +1,22 @@
+services:
+  nocodb:
+    container_name: nocodb
+    image: nocodb/nocodb:latest
+    volumes:
+      - nocodb_data:/usr/app/data
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nocodb.rule=Host(`nocodb.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.nocodb.entrypoints=https"
+      - "traefik.http.routers.nocodb.tls=true"
+      - "traefik.http.services.nocodb.loadbalancer.server.port=8080"
+      - "glance.name=NocoDB"
+      - "glance.icon=di:nocodb"
+      - "glance.url=https://nocodb.${DOMAIN_NAME}"
+      - "glance.description=Like Baserow, but cooler"
+
+volumes:
+  nocodb_data:
+

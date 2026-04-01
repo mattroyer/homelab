@@ -1,0 +1,21 @@
+services:
+  comfyui:
+    image: ghcr.io/ai-dock/comfyui:latest # or choose a specific tag
+    volumes:
+      - ./apps/comfyui/output:/app/output
+      - ./apps/comfyui/config:/app/config
+    environment:
+      - LOW_VRAM=true # Optional: For low VRAM usage
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.comfyui.rule=Host(`comfyui.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.comfyui.entrypoints=https"
+      - "traefik.http.routers.comfyui.tls=true"
+      - "traefik.http.services.comfyui.loadbalancer.server.port=8188"
+      - "glance.name=ComfyUI"
+      - "glance.icon=di:comfyui"
+      - "glance.url=https://comfyui.${DOMAIN_NAME}"
+      - "glance.description=Soooo comfy"
+

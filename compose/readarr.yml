@@ -1,0 +1,28 @@
+services:
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - readarr_data:/config
+      - /mnt/storage/media/books:/books
+      - /mnt/storage/media/downloads/complete:/downloads/complete
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.readarr.rule=Host(`readarr.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.readarr.entrypoints=https"
+      - "traefik.http.routers.readarr.tls=true"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - "glance.name=Readarr"
+      - "glance.icon=di:readarr"
+      - "glance.url=https://readarr.${DOMAIN_NAME}"
+      - "glance.description=Book and audiobook management"
+
+volumes:
+  readarr_data:

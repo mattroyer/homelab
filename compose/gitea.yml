@@ -1,0 +1,28 @@
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - DB_TYPE=sqlite3
+    volumes:
+      - gitea_data:/data
+    ports:
+      - 2222:22
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.gitea.entrypoints=https"
+      - "traefik.http.routers.gitea.tls=true"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "glance.name=Gitea"
+      - "glance.icon=si:gitea"
+      - "glance.url=https://gitea.${DOMAIN_NAME}"
+      - "glance.description=Personal Git server"
+
+volumes:
+  gitea_data:
+

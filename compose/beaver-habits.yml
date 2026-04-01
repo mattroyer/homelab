@@ -1,0 +1,26 @@
+services:
+  beaver-habits:
+    image: daya0576/beaverhabits:latest
+    container_name: beaver-habits
+    user: "${PUID:-1000}:${PGID:-1000}"
+    restart: unless-stopped
+    environment:
+      - HABITS_STORAGE=DATABASE          # use built‑in SQLite DB; swap to USER_DISK for JSON
+      - TZ=${TZ}
+      - MAX_USER_COUNT=1                # lock it down to just you (or raise as needed)
+      - FIRST_DAY_OF_WEEK=0             # 0=Mon … 6=Sun
+    volumes:
+      - ./apps/beaver-habits:/app/.user/   # DB & uploads live here
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.habits.rule=Host(`habits.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.habits.entrypoints=https"
+      - "traefik.http.routers.habits.tls=true"
+      - "traefik.http.services.habits.loadbalancer.server.port=8080"
+      - "glance.name=Beaver Habits"
+      - "glance.icon=fa:check-double"
+      - "glance.url=https://habits.${DOMAIN_NAME}"
+      - "glance.description=Daily habit tracker"
+

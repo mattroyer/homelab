@@ -1,0 +1,31 @@
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - qbittorrent_config:/config
+      - /mnt/storage/media/downloads:/downloads
+    networks:
+      - homelab
+    ports:
+      - "8999:8999"         # BitTorrent (TCP)
+      - "8999:8999/udp"     # BitTorrent (UDP)
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=https"
+      - "traefik.http.routers.qbittorrent.tls=true"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+      - "glance.name=qBittorrent"
+      - "glance.icon=si:qbittorrent"
+      - "glance.url=https://qbittorrent.${DOMAIN_NAME}"
+      - "glance.description=Torrent client"
+
+volumes:
+  qbittorrent_config:

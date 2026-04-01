@@ -1,0 +1,48 @@
+services:
+  jellystat-db:
+    image: postgres:15.2
+    shm_size: '1gb'
+    container_name: jellystat-db
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "glance.hide=true"
+
+  jellystat:
+    image: cyfershepard/jellystat:latest
+    container_name: jellystat
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_IP: jellystat-db
+      POSTGRES_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET}
+      TZ: ${TZ}
+    volumes:
+      - jellystat-backup-data:/app/backend/backup-data
+    depends_on:
+      - jellystat-db
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellystat.rule=Host(`jellystat.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.jellystat.entrypoints=https"
+      - "traefik.http.routers.jellystat.tls=true"
+      - "traefik.http.services.jellystat.loadbalancer.server.port=3000"
+      - "glance.name=Jellystat"
+      - "glance.icon=di:jellystat"
+      - "glance.url=https://jellystat.${DOMAIN_NAME}"
+      - "glance.description=Stats about Jellyfin"
+
+volumes:
+  jellystat-backup-data:
+  postgres-data:
+

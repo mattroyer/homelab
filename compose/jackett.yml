@@ -1,0 +1,27 @@
+services:
+  jackett:
+    image: linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000 
+      - PGID=1000 
+      - TZ=${TZ}
+      - AUTO_UPDATE=true
+    volumes:
+      - jackett_config:/config
+      - /mnt/storage/media/downloads:/downloads/complete
+    networks:
+      - homelab
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jackett.rule=Host(`jackett.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.jackett.entrypoints=https"
+      - "traefik.http.routers.jackett.tls=true"
+      - "traefik.http.services.jackett.loadbalancer.server.port=9117"
+      - "glance.name=Jackett"
+      - "glance.icon=di:jackett-light"
+      - "glance.url=https://jackett.${DOMAIN_NAME}"
+      - "glance.description=Indexer proxy for download clients"
+
+volumes:
+  jackett_config:

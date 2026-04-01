@@ -1,0 +1,33 @@
+services:
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    container_name: lazylibrarian
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+      - UMASK=002
+    volumes:
+      - lazylibrarian_config:/config
+      - /mnt/storage/media/books:/books
+      - /mnt/storage/media/magazines:/magazines
+      - /mnt/storage/media/downloads/complete/lazylibrarian:/downloads/complete
+      - /mnt/storage/media/audiobooks:/audiobooks
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lazylibrarian.rule=Host(`lazylibrarian.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.lazylibrarian.entrypoints=https"
+      - "traefik.http.routers.lazylibrarian.tls=true"
+      - "traefik.http.services.lazylibrarian.loadbalancer.server.port=5299"
+      - "glance.name=LazyLibrarian"
+      - "glance.icon=di:lazylibrarian"
+      - "glance.url=https://lazylibrarian.${DOMAIN_NAME}"
+      - "glance.description=e-book & audiobook manager"
+    
+volumes:
+  lazylibrarian_config:
+

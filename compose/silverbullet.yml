@@ -1,0 +1,24 @@
+services:
+  silverbullet:
+    image: ghcr.io/silverbulletmd/silverbullet:v2
+    container_name: silverbullet
+    environment:
+      - SB_USER=${SILVERBULLET_AUTH}
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ./apps/silverbullet/space:/space
+    networks:
+      - homelab
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.silverbullet.rule=Host(`notes.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.silverbullet.entrypoints=https"
+      - "traefik.http.routers.silverbullet.tls=true"
+      - "traefik.http.services.silverbullet.loadbalancer.server.port=3000"
+      - "glance.name=SilverBullet"
+      - "glance.icon=si:silverbullet"
+      - "glance.url=https://notes.${DOMAIN_NAME}"
+      - "glance.description=Simple note-taking"

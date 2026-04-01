@@ -1,0 +1,73 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    command:
+      - --configFile=/traefik.yml
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - homelab
+    ports:
+      - 80:80
+      - 443:443
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN}
+      TRAEFIK_DASHBOARD_CREDENTIALS: ${TRAEFIK_DASHBOARD_CREDENTIALS}
+    env_file: .env
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./apps/traefik/traefik.yml:/traefik.yml:ro
+      - ./apps/traefik/acme.json:/acme.json
+      - ./apps/traefik/dynamic.toml:/dynamic.toml:ro
+      - ./apps/traefik/certs:/certs:ro
+      # - ./apps/traefik/config.yml:/config.yml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`traefik-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+
+include:
+  - compose/audiobookshelf.yml
+  - compose/bazarr.yml
+  - compose/dozzle.yml
+  - compose/filebrowser.yml
+  - compose/glance.yml
+  - compose/grocy.yml
+  - compose/homebox.yml
+  - compose/immich.yml
+  - compose/it-tools.yml
+  - compose/jellyfin.yml
+  - compose/jellyseerr.yml
+  - compose/jellystat.yml
+  - compose/miniflux.yml
+  - compose/n8n.yml
+  - compose/nocodb.yml
+  - compose/prowlarr.yml
+  - compose/radarr.yml
+  - compose/readmeabook.yml
+  - compose/rsshub.yml
+  - compose/sabnzbd.yml
+  - compose/sonarr.yml
+  - compose/vaultwarden.yml
+  - compose/watchtower.yml
+
+networks:
+  homelab:
+    driver: bridge
