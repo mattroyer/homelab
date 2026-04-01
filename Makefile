@@ -1,4 +1,5 @@
 SCRIPTS_DIR := ./scripts
+.DEFAULT_GOAL := help
 
 .PHONY: bootstrap render doctor validate up force-up down backup help
 
@@ -12,10 +13,10 @@ help:
 	@echo "  make force-up   - docker compose up -d --force-recreate"
 	@echo "  make down       - docker compose down"
 	@echo "  make backup     - run backup script for named volumes (see scripts/backup-volumes.sh)"
-	@echo ""
+	@echo "-----------------"
 	@echo "Note:"
-	@echo "  The two `up` and the one `down` targets allow arguments, so you can"
-	@echo "  give service names if needed: e.g. `make up jellyfin`"
+	@printf '%s\n' '  The two `up` and the one `down` targets allow arguments, so you can'
+	@printf '%s\n' '  give service names if needed: e.g. `make up jellyfin`'
 
 bootstrap:
 	@$(SCRIPTS_DIR)/bootstrap.sh
