@@ -20,8 +20,10 @@ You can clone it, generate local config, and bring up the stack without needing 
 3. Start the starter stack with `docker compose up -d` (or `make up`).
 4. Open `https://glance.<your DOMAIN_NAME>`.
 
-For example, if `DOMAIN_NAME=awesomeness.sslip.io`, open `https://glance.awesomeness.sslip.io`.
-If you set `DOMAIN_NAME=awesomeness` instead, the URL would be `https://glance.awesomeness`, which usually will not resolve unless your DNS is set up for that name.
+For example, if bootstrap chose `DOMAIN_NAME=192-168-1-10.sslip.io`, open `https://glance.192-168-1-10.sslip.io`.
+If you change `DOMAIN_NAME`, `./scripts/render-configs.sh` will update the generated hostnames and local config, but it will not publish DNS for you.
+An arbitrary name like `awesomeness.sslip.io` will not resolve via public `sslip.io` unless that name already maps to your server IP.
+If you later enable Pi-hole from this repo and point your clients at it for DNS, the generated Pi-hole rule can make `${DOMAIN_NAME}` and its subdomains resolve locally to `HOMELAB_HOST_IP`.
 
 Bootstrap writes the default `DOMAIN_NAME` into `.env`.
 By default it uses `<your-host-ip>.sslip.io`, so a machine on your LAN can usually resolve the starter URLs without local DNS setup.
